@@ -22,7 +22,7 @@
         android:text="갤러리" />
 
     <Button
-        android:id="@+id/btn_upload"
+        android:id="@+id/btn_makeup"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="300px"
         android:layout_height="wrap_content"
