@@ -3,20 +3,15 @@ import numpy as np
 import cv2 as cv
 import json
 from flask import Flask, request, Response
-import uuid
-import lip
+from lip import makeUp
 
-# 얼굴 인식
-def faceDetect(img):
-    face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-    for(x,y,w,h) in faces:
-        img = cv.rectangle(img, (x,y), (x+w,y+h), (0,255,0))
-        # 인식한 이미지 저장
-        path_file = ('static/%s.jpg' %uuid.uuid4().hex)
-        cv.imwrite(path_file, img)
-        return json.dumps(path_file)
+def data(size, r, g, b, index):
+    global GS, GR, GG, GB, ID
+    GS = size
+    GR = r
+    GG = g
+    GB = b
+    ID = index
 
 """ API """
 app = Flask(__name__)
@@ -28,12 +23,25 @@ def upload():
     # 서버 내 이미지 저장
     path_file = ('static/Input.jpg')
     cv.imwrite(path_file, img)
-    # 이미지로 메이크업
-    lip.makeUpFace()
-    img_processed = path_file
+    make = makeUp()
+    make.readImg() # 이미지 초기화
+    make.makeUpFeatures(r=GR, g=GG, b=GB, size=(GS, GS), index=ID)
+    img_processed = json.dumps(path_file)
     # json string으로 돌려받기
     return Response(response=img_processed, status=200, mimetype="application/json")
 
+@app.route('/api/makeupP', methods=['POST'])
+def parameter():
+    #print(request.is_json)
+    params = request.get_json()
+    #print(params)
+    size = params.get('size')
+    r = params.get('rColor')
+    g = params.get('gColor')
+    b = params.get('bColor')
+    index = params.get('index')
+    data(size, r, g, b, index)
+    return Response()
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
-    #lip.makeUpFace()
