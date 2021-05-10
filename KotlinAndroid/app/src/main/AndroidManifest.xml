@@ -33,7 +33,7 @@
         </activity>
 
         <provider
-            android:authorities="com.example.KotlinAndroid.fileprovider"
+            android:authorities="com.example.KotlinAndroid.Fileprovider"
             android:name="androidx.core.content.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">

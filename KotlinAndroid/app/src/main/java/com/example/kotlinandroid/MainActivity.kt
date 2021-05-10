@@ -1,5 +1,6 @@
 package com.example.kotlinandroid
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
@@ -31,6 +32,7 @@ import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.*
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Type
@@ -51,7 +53,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
     var selectedUri: Uri? = null
     lateinit var dialog: ProgressDialog
 
-    private val REQUEST_IMAGE_CAPTURE: Int = 1 // 사진 촬영 요청 코드, val은 불변
+    private val IMAGE_CAPTURE_REQUEST: Int = 1 // 사진 촬영 요청 코드, val은 불변
     private val PICK_FILE_REQUEST: Int = 1000 // 갤러리 오픈 요청 코드
     lateinit var curPhotoPath: String // 사진 경로, var은 변할 수 있고, lateinit var은 나중에 정할 수 있음
 
@@ -76,6 +78,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         // 저장소 권한 허가
         Dexter.withActivity(this)
             .withPermissions(android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     android.Manifest.permission.CAMERA)
                 .withListener(object : MultiplePermissionsListener {
                     override fun onPermissionsChecked(report: MultiplePermissionsReport) {
@@ -107,10 +110,11 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
 
     // 서버로 이미지 업로드
     private fun uploadFile() {
+
         if (selectedUri != null) {
             var file: File? = null
             try {
-                file = File(Common.getFilePath(this, selectedUri!!))
+                file = File(Common?.getFilePath(this, selectedUri!!))
             } catch (e: URISyntaxException) {
                 e.printStackTrace()
             }
@@ -122,8 +126,8 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
                     upService.uploadFile(body)
                         .enqueue(object : Callback<String> {
                             override fun onResponse(call: Call<String>, response: Response<String>) {
-                                image_view.setImageURI(selectedUri)
-                                Log.d("급나피곤해>??", "성공 : ${response.raw()}")
+                                // image_view.setImageURI(selectedUri)
+                                // Log.d("결과", "성공 : //{response.raw()}")
                                 Toast.makeText(this@MainActivity, "사진 전송에 성공하였습니다.", Toast.LENGTH_SHORT).show()
                             }
 
@@ -141,14 +145,15 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
 
     // 서버에서 이미지 다운로드
     private fun downloadFile(){
-        downService.downloadFile("http://192.168.1.100:5000/static/Output.jpg/")
+        downService.downloadFile("http://192.168.1.102:5000/static/Output.jpg/")
                 .enqueue(object : Callback<ResponseBody>{
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                         var inputS : InputStream = response.body()!!.byteStream()
                         var bmp : Bitmap = BitmapFactory.decodeStream(inputS)
-                        Log.d("우짤램>??", "성공 : ${response.raw()}")
+                        // Log.d("결과", "성공 : ${response.raw()}")
                         image_view.setImageBitmap(bmp)
-                        Toast.makeText(this@MainActivity, "메이크업에 성공하였습니다.", Toast.LENGTH_SHORT).show()
+                        savePhoto(bmp)
+                        Toast.makeText(this@MainActivity, "메이크업에 성공하고 사진을 저장하였습니다.", Toast.LENGTH_SHORT).show()
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -167,8 +172,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         input["index"] = index
         upParamsService.uploadParameter(input).enqueue(object : Callback<parameter>{
                     override fun onResponse(call: Call<parameter>, response: Response<parameter>) {
-                        //Log.d("여기 JSON이어야 하믄데", "성공 : ${response.raw()}")
-                        //Log.d("여기 컬레겟해", "성공 : ${response.body()?.getRC()}")
+                        //Log.d("결과", "성공 : ${response.raw()}")
                         //Toast.makeText(this@MainActivity, "파라메타 전달에 성공하였습니다.", Toast.LENGTH_SHORT).show()
                     }
 
@@ -190,11 +194,11 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
                 photoFile?. also {
                     val photoURI: Uri = FileProvider.getUriForFile(
                             this,
-                            "com.example.kotlinandroid.fileprovider",
+                            "com.example.KotlinAndroid.Fileprovider",
                             it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE) // ForResult를 쓰면 서브 액티비티에서 돌아오는 결과값을 main에서 받을 수 있음
+                    startActivityForResult(takePictureIntent, IMAGE_CAPTURE_REQUEST) // ForResult를 쓰면 서브 액티비티에서 돌아오는 결과값을 main에서 받을 수 있음
                 }
             }
         }
@@ -221,26 +225,23 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         }
 
         // 카메라에서 이미지를 성공적으로 가져왔다면
-        if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+        if(requestCode == IMAGE_CAPTURE_REQUEST && resultCode == Activity.RESULT_OK) {
             val bitmap: Bitmap
             val file = File(curPhotoPath) // 현재 사진이 저장된 값
             val filepath = Uri.fromFile(file) // 현재 사진이 저장된 경로
+            selectedUri = filepath
 
-            // 버전에 따라 이미지 가져오는 방식이 다르기 때문에 설정
             if (Build.VERSION.SDK_INT < 28) {
                 bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filepath)
-                image_view.setImageBitmap(imgRotate(bitmap))
+                image_view.setImageBitmap(bitmap)
             } else {
                 val decode = ImageDecoder.createSource(
                         this.contentResolver,
                         filepath
                 )
                 bitmap = ImageDecoder.decodeBitmap(decode)
-                image_view.setImageBitmap(imgRotate(bitmap))
+                image_view.setImageBitmap(bitmap)
             }
-
-            //savePhoto(bitmap)
-            //uploadPhoto(filepath)
         }
 
     }
@@ -259,6 +260,25 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         return resizeBitmap
     }
 
+    // 갤러리에 저장
+    @SuppressLint("SimpleDateFormat")
+    private fun savePhoto(bitmap: Bitmap) {
+        val folderPath = Environment.getExternalStorageDirectory().absolutePath + "/Pictures/" // Pictures 폴더에 저장하기 위한 경로 선언
+        val timestamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date()) // 저장 시간에 따른 파일명 설정
+        val fileName = "${timestamp}.jpeg"
+        val folder = File(folderPath)
+
+        // 선언한 경로의 폴더가 존재하지 않을 경우
+        if(!folder.isDirectory) {
+            folder.mkdirs()
+        }
+
+        // 실질적인 저장처리
+        val out = FileOutputStream(folderPath + fileName)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+        //Toast.makeText(this,"갤러리에 사진이 저장되었습니다", Toast.LENGTH_SHORT).show()
+    }
+
     override fun onProgressupdate(percent: Int) {
 
     }
@@ -270,7 +290,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
     ) {
         super.onCreateContextMenu(menu, v, menuInfo)
 
-        var mInflater = this.menuInflater
+        val mInflater = this.menuInflater
         if (v === btn_makeupSelect) {
             menu!!.setHeaderTitle("배경색 변경")
             mInflater.inflate(R.menu.menu1, menu)
@@ -280,65 +300,65 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
     override fun onContextItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.itemshadowRed -> {
-                uploadParameter(255, 0, 51, 45, 1)
+                uploadParameter(255, 0, 51, 66, 1)
                 uploadFile()
                 return true
             }
             R.id.itemshadowOrange -> {
-                uploadParameter(255, 102, 0, 45, 1)
+                uploadParameter(255, 102, 0, 66, 1)
                 uploadFile()
                 return true
             }
             R.id.itemshadowPink -> {
-                uploadParameter(255, 102, 153, 45, 1)
+                uploadParameter(255, 102, 153, 66, 1)
                 uploadFile()
                 return true
             }
 
             R.id.itemlibRed -> {
-                uploadParameter(255, 0, 51, 11, 2)
+                uploadParameter(255, 0, 51, 33, 2)
                 uploadFile()
                 return true
             }
             R.id.itemlibOrange -> {
-                uploadParameter(255, 102, 0, 11, 2)
+                uploadParameter(255, 102, 0, 33, 2)
                 uploadFile()
                 return true
             }
             R.id.itemlibPink -> {
-                uploadParameter(255, 102, 153, 11, 2)
+                uploadParameter(255, 102, 153, 33, 2)
                 uploadFile()
                 return true
             }
 
             R.id.itemcheekRed -> {
-                uploadParameter(255, 0, 51, 80, 3)
+                uploadParameter(255, 0, 51, 100, 3)
                 uploadFile()
                 return true
             }
             R.id.itemcheekOrange -> {
-                uploadParameter(255, 102, 0, 80, 3)
+                uploadParameter(255, 102, 0, 100, 3)
                 uploadFile()
                 return true
             }
             R.id.itemcheekPink -> {
-                uploadParameter(255, 102, 153, 80, 3)
+                uploadParameter(255, 102, 153, 100, 3)
                 uploadFile()
                 return true
             }
 
             R.id.itempupilRed -> {
-                uploadParameter(255, 0, 51, 11, 4)
+                uploadParameter(255, 0, 51, 33, 4)
                 uploadFile()
                 return true
             }
             R.id.itempupilOrange -> {
-                uploadParameter(255, 102, 0, 11, 4)
+                uploadParameter(255, 102, 0, 33, 4)
                 uploadFile()
                 return true
             }
             R.id.itempupilPink -> {
-                uploadParameter(255, 102, 153, 11, 4)
+                uploadParameter(255, 102, 153, 33, 4)
                 uploadFile()
                 return true
             }
