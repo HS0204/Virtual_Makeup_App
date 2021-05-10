@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,42 +10,101 @@
 
     <ImageView
         android:id="@+id/image_view"
-        android:src="@android:drawable/ic_menu_camera"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_smile" />
 
-    <Button
-        android:id="@+id/btn_gallery"
-        android:layout_width="300px"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:text="갤러리" />
-
-    <Button
-        android:id="@+id/btn_makeup"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="300px"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerInParent="true"
-        android:layout_centerHorizontal="false"
-        android:text="적용" />
-
-    <Button
-        android:id="@+id/btn_capture"
-        android:layout_width="300px"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:text="촬영" />
-
-    <Button
-        android:id="@+id/btn_makeupSelect"
+    <TextView
+        android:id="@+id/volume"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:text="메이크업 선택" />
+        android:layout_marginTop="32dp"
+        android:text="25"
+        android:visibility="invisible"
+        android:textSize="30sp"
+        app:layout_anchor="@+id/volumeSeekBar"
+        app:layout_anchorGravity="top|center" />
 
-</RelativeLayout>
+    <!--메이크업 시트-->
+    <FrameLayout
+        android:id="@+id/sheet"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        android:background="@drawable/rounded">
+
+        <ImageView
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_bar"
+            android:scaleType="centerCrop"
+            android:layout_marginTop="4dp"
+            android:layout_gravity="center|top" />
+
+        <SeekBar
+            android:id="@+id/volumeSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:visibility="invisible"
+            android:min="10"
+            android:max="50"
+            android:progress="25" />
+
+        <Button
+            android:id="@+id/lip"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="53dp"
+            android:layout_gravity="left"
+            android:text="입술" />
+        <Button
+            android:id="@+id/cheek"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="53dp"
+            android:layout_gravity="center|top"
+            android:text="볼" />
+        <Button
+            android:id="@+id/shadow"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="53dp"
+            android:layout_gravity="right"
+            android:text="섀도우" />
+
+    </FrameLayout>
+
+    <!--하단 바-->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF">
+
+        <Button
+            android:id="@+id/btn_gallery"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="left|center"
+            android:layout_marginLeft="90dp"
+            android:background="@drawable/ic_gallery" />
+
+        <Button
+            android:id="@+id/btn_makeup"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:background="@drawable/ic_beauty" />
+
+        <Button
+            android:id="@+id/btn_capture"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="right|center"
+            android:layout_marginRight="90dp"
+            android:background="@drawable/ic_camera" />
+
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">KotlinAndroid</string>
+    <string name="beauty">beauty</string>
+    <string name="camera">camera</string>
 </resources>

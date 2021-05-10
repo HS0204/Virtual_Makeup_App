@@ -34,7 +34,7 @@ class makeUp:
     def readImg(self):
         self.img = cv.imread('static/Input.jpg')
 
-    def makeUpFeatures(self, r, g, b, size, index):
+    def makeUpFeatures(self, r, g, b, size, index, strong):
 
         def createBox(img, points, scale=5, masked=False, cropped=True):
             if masked:
@@ -98,7 +98,7 @@ class makeUp:
                 """ 입술&눈동자 11,11 / 볼 80,80 / 섀도우 45,45 / 콧대 하이라이터 100,100"""
                 # imgOriginalGray = cv.cvtColor(imgOriginal, cv.COLOR_BGR2GRAY)  # 채널 똑같이 하기 위해 조정
                 # imgOriginalGray = cv.cvtColor(imgOriginalGray, cv.COLOR_GRAY2BGR)  # 채널 똑같이 하기 위해 조정
-                imgColorFeatures = cv.addWeighted(imgOriginal, 1, imgColorFeatures, 0.15, 0)  # 원본에 메이크업 추가
+                imgColorFeatures = cv.addWeighted(imgOriginal, 1, imgColorFeatures, strong, 0)  # 원본에 메이크업 추가 0.07
 
                 # cv.imshow('BGR', imgColorFeatures)
                 # cv.imshow('ORG', imgOriginal)

@@ -19,9 +19,11 @@ import android.widget.Button
 import android.widget.RelativeLayout
 import android.widget.Toast
 import android.util.Log
+import android.widget.SeekBar
 import androidx.core.content.FileProvider
 import com.example.kotlinandroid.Retrofit.*
 import com.example.kotlinandroid.Utils.*
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -70,11 +72,6 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         setContentView(R.layout.activity_main)
         title = "테스트중"
 
-        makeupSeletLayout = findViewById<RelativeLayout>(R.id.baselayout) as RelativeLayout
-        btn_makeupSelect = findViewById<Button>(R.id.btn_makeupSelect) as Button
-        registerForContextMenu(btn_makeupSelect)
-
-
         // 저장소 권한 허가
         Dexter.withActivity(this)
             .withPermissions(android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -94,10 +91,57 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         downService = apiDownload
         upParamsService = apiParameter
 
+        // 메이크업 시트
+        BottomSheetBehavior.from(sheet).apply {
+            peekHeight = 270 // 보이는 정도
+            this.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        // 메이크업 강도 조절 바
+        volumeSeekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                volume.text = progress.toString()
+                volume.visibility = View.VISIBLE
+                uploadParameter(255, 0, 51, 33, 2, progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
         // 이벤트
         btn_gallery.setOnClickListener { chooseFile() } // 갤러리에서 사진 선택
         btn_makeup.setOnClickListener { downloadFile() } // 서버에서 메이크업된 사진 수신
         btn_capture.setOnClickListener { takeCapture() } // 사진 촬영
+
+        // 메이크업
+        lip.setOnClickListener {
+            volumeSeekBar.visibility = View.VISIBLE
+            //uploadParameter(255, 0, 51, 33, 2)
+            uploadFile()
+        }
+        cheek.setOnClickListener {
+            volumeSeekBar.visibility = View.VISIBLE
+            //uploadParameter(255, 0, 51, 100, 3)
+            uploadFile()
+        }
+        shadow.setOnClickListener {
+            volumeSeekBar.visibility = View.VISIBLE
+            //uploadParameter(255, 0, 51, 66, 1)
+            uploadFile()
+        }
+        """
+        pupli.setOnClickListener {
+            uploadParameter(255, 0, 51, 33, 4)
+            uploadFile()
+        }
+        """
     }
 
     // 갤러리에서 이미지 선택
@@ -163,13 +207,14 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
     }
 
     // 파라메타 전달
-    private fun uploadParameter(r:Int, g:Int, b:Int, size:Int, index:Int){
+    private fun uploadParameter(r:Int, g:Int, b:Int, size:Int, index:Int, strong: Int){
         val input = HashMap<String, Int>()
         input["rColor"] = r
         input["gColor"] = g
         input["bColor"] = b
         input["size"] = size
         input["index"] = index
+        input["strong"] = strong
         upParamsService.uploadParameter(input).enqueue(object : Callback<parameter>{
                     override fun onResponse(call: Call<parameter>, response: Response<parameter>) {
                         //Log.d("결과", "성공 : ${response.raw()}")
@@ -281,89 +326,6 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
 
     override fun onProgressupdate(percent: Int) {
 
-    }
-
-    override fun onCreateContextMenu(
-        menu: ContextMenu?,
-        v: View?,
-        menuInfo: ContextMenu.ContextMenuInfo?
-    ) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-
-        val mInflater = this.menuInflater
-        if (v === btn_makeupSelect) {
-            menu!!.setHeaderTitle("배경색 변경")
-            mInflater.inflate(R.menu.menu1, menu)
-        }
-    }
-
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.itemshadowRed -> {
-                uploadParameter(255, 0, 51, 66, 1)
-                uploadFile()
-                return true
-            }
-            R.id.itemshadowOrange -> {
-                uploadParameter(255, 102, 0, 66, 1)
-                uploadFile()
-                return true
-            }
-            R.id.itemshadowPink -> {
-                uploadParameter(255, 102, 153, 66, 1)
-                uploadFile()
-                return true
-            }
-
-            R.id.itemlibRed -> {
-                uploadParameter(255, 0, 51, 33, 2)
-                uploadFile()
-                return true
-            }
-            R.id.itemlibOrange -> {
-                uploadParameter(255, 102, 0, 33, 2)
-                uploadFile()
-                return true
-            }
-            R.id.itemlibPink -> {
-                uploadParameter(255, 102, 153, 33, 2)
-                uploadFile()
-                return true
-            }
-
-            R.id.itemcheekRed -> {
-                uploadParameter(255, 0, 51, 100, 3)
-                uploadFile()
-                return true
-            }
-            R.id.itemcheekOrange -> {
-                uploadParameter(255, 102, 0, 100, 3)
-                uploadFile()
-                return true
-            }
-            R.id.itemcheekPink -> {
-                uploadParameter(255, 102, 153, 100, 3)
-                uploadFile()
-                return true
-            }
-
-            R.id.itempupilRed -> {
-                uploadParameter(255, 0, 51, 33, 4)
-                uploadFile()
-                return true
-            }
-            R.id.itempupilOrange -> {
-                uploadParameter(255, 102, 0, 33, 4)
-                uploadFile()
-                return true
-            }
-            R.id.itempupilPink -> {
-                uploadParameter(255, 102, 153, 33, 4)
-                uploadFile()
-                return true
-            }
-        }
-        return false
     }
 
 
