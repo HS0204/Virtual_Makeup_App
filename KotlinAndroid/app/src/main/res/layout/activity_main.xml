@@ -47,9 +47,9 @@
             android:layout_height="wrap_content"
             android:layout_margin="30dp"
             android:visibility="invisible"
-            android:min="10"
-            android:max="50"
-            android:progress="25" />
+            android:min="5"
+            android:max="30"
+            android:progress= "15" />
 
         <Button
             android:id="@+id/lip"

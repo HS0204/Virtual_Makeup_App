@@ -103,6 +103,7 @@ class makeUp:
                 # cv.imshow('BGR', imgColorFeatures)
                 # cv.imshow('ORG', imgOriginal)
                 cv.imwrite('static/Output.jpg', imgColorFeatures)
+                print(index, "저장...")
                 # cv.imshow('Lips', imgFeatures)
                 # print(myPoints)
 

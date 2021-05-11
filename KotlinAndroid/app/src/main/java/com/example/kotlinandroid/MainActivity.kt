@@ -44,9 +44,6 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), IUploadCallback {
 
-    lateinit var makeupSeletLayout: RelativeLayout // add--> baselayout
-    lateinit var btn_makeupSelect: Button // add--> makeupSelect button
-
     lateinit var upService: IUploadAPI
     lateinit var downService : IDownloadAPI
     lateinit var upParamsService : IUploadParamsAPI
@@ -102,7 +99,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 volume.text = progress.toString()
                 volume.visibility = View.VISIBLE
-                uploadParameter(255, 0, 51, 33, 2, progress)
+                uploadStrong(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -110,7 +107,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
+                makeUpFace()
             }
 
         })
@@ -123,22 +120,20 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         // 메이크업
         lip.setOnClickListener {
             volumeSeekBar.visibility = View.VISIBLE
-            //uploadParameter(255, 0, 51, 33, 2)
-            uploadFile()
+            uploadParameter(247, 40, 57, 33, 2)
         }
         cheek.setOnClickListener {
             volumeSeekBar.visibility = View.VISIBLE
-            //uploadParameter(255, 0, 51, 100, 3)
-            uploadFile()
+            uploadParameter(247, 40, 57, 100, 3)
         }
         shadow.setOnClickListener {
             volumeSeekBar.visibility = View.VISIBLE
-            //uploadParameter(255, 0, 51, 66, 1)
-            uploadFile()
+            uploadParameter(247, 40, 57, 66, 1)
         }
         """
         pupli.setOnClickListener {
-            uploadParameter(255, 0, 51, 33, 4)
+            volumeSeekBar.visibility = View.VISIBLE
+            uploadParameter(255, 0, 51, 66, 1)
             uploadFile()
         }
         """
@@ -154,7 +149,6 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
 
     // 서버로 이미지 업로드
     private fun uploadFile() {
-
         if (selectedUri != null) {
             var file: File? = null
             try {
@@ -196,8 +190,8 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
                         var bmp : Bitmap = BitmapFactory.decodeStream(inputS)
                         // Log.d("결과", "성공 : ${response.raw()}")
                         image_view.setImageBitmap(bmp)
-                        savePhoto(bmp)
-                        Toast.makeText(this@MainActivity, "메이크업에 성공하고 사진을 저장하였습니다.", Toast.LENGTH_SHORT).show()
+                        //savePhoto(bmp)
+                        Toast.makeText(this@MainActivity, "메이크업에 성공하였습니다.", Toast.LENGTH_SHORT).show()
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -207,14 +201,13 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
     }
 
     // 파라메타 전달
-    private fun uploadParameter(r:Int, g:Int, b:Int, size:Int, index:Int, strong: Int){
+    private fun uploadParameter(r:Int, g:Int, b:Int, size:Int, index:Int){
         val input = HashMap<String, Int>()
         input["rColor"] = r
         input["gColor"] = g
         input["bColor"] = b
         input["size"] = size
         input["index"] = index
-        input["strong"] = strong
         upParamsService.uploadParameter(input).enqueue(object : Callback<parameter>{
                     override fun onResponse(call: Call<parameter>, response: Response<parameter>) {
                         //Log.d("결과", "성공 : ${response.raw()}")
@@ -225,6 +218,34 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
                         //Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
                     }
                 })
+    }
+
+    // 메이크업 강도 전달
+    private fun uploadStrong(strong:Int){
+        upParamsService.uploadStrong(strong).enqueue(object : Callback<strong>{
+            override fun onResponse(call: Call<strong>, response: Response<strong>) {
+                //Log.d("결과", "성공 : ${response.raw()}")
+                //Toast.makeText(this@MainActivity, "파라메타 전달에 성공하였습니다.", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onFailure(call: Call<strong>, t: Throwable) {
+                //Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    // 실질적인 메이크업 요청
+    private fun makeUpFace(){
+        val strong = 1
+        upParamsService.makeUpFace(strong).enqueue(object : Callback<strong>{
+            override fun onResponse(call: Call<strong>, response: Response<strong>) {
+                Toast.makeText(this@MainActivity, "메이크업 버튼을 눌러주세요.", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onFailure(call: Call<strong>, t: Throwable) {
+
+            }
+        })
     }
 
     // 카메라 촬영
@@ -264,8 +285,11 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         if (requestCode == PICK_FILE_REQUEST && resultCode == Activity.RESULT_OK) {
                 if (data != null) {
                     selectedUri = data.data
-                    if (selectedUri != null && !selectedUri!!.path!!.isEmpty())
+                    if (selectedUri != null && !selectedUri!!.path!!.isEmpty()){
                         image_view.setImageURI(selectedUri)
+                        uploadFile()
+                    }
+
                 }
         }
 
@@ -279,6 +303,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
             if (Build.VERSION.SDK_INT < 28) {
                 bitmap = MediaStore.Images.Media.getBitmap(contentResolver, filepath)
                 image_view.setImageBitmap(bitmap)
+                uploadFile()
             } else {
                 val decode = ImageDecoder.createSource(
                         this.contentResolver,
@@ -286,6 +311,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
                 )
                 bitmap = ImageDecoder.decodeBitmap(decode)
                 image_view.setImageBitmap(bitmap)
+                uploadFile()
             }
         }
 
