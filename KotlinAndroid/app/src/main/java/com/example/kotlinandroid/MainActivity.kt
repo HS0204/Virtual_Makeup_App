@@ -97,8 +97,8 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         // 메이크업 강도 조절 바
         volumeSeekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                volume.text = progress.toString()
-                volume.visibility = View.VISIBLE
+                // volume.text = progress.toString()
+                // volume.visibility = View.VISIBLE
                 uploadStrong(progress)
             }
 
@@ -186,12 +186,12 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         downService.downloadFile("http://192.168.1.102:5000/static/Output.jpg/")
                 .enqueue(object : Callback<ResponseBody>{
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                        var inputS : InputStream = response.body()!!.byteStream()
-                        var bmp : Bitmap = BitmapFactory.decodeStream(inputS)
+                        val inputS : InputStream = response.body()!!.byteStream()
+                        val bmp : Bitmap = BitmapFactory.decodeStream(inputS)
                         // Log.d("결과", "성공 : ${response.raw()}")
                         image_view.setImageBitmap(bmp)
-                        //savePhoto(bmp)
                         Toast.makeText(this@MainActivity, "메이크업에 성공하였습니다.", Toast.LENGTH_SHORT).show()
+                        savePhoto(bmp)
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -243,7 +243,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
             }
 
             override fun onFailure(call: Call<strong>, t: Throwable) {
-
+                Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -347,7 +347,7 @@ class MainActivity : AppCompatActivity(), IUploadCallback {
         // 실질적인 저장처리
         val out = FileOutputStream(folderPath + fileName)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        //Toast.makeText(this,"갤러리에 사진이 저장되었습니다", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this,"갤러리에 사진이 저장되었습니다", Toast.LENGTH_SHORT).show()
     }
 
     override fun onProgressupdate(percent: Int) {
