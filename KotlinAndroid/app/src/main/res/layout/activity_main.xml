@@ -20,10 +20,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="25"
+        android:textSize="15sp"
         android:visibility="invisible"
-        android:textSize="30sp"
         app:layout_anchor="@+id/volumeSeekBar"
-        app:layout_anchorGravity="top|center" />
+        app:layout_anchorGravity="center|right"/>
 
     <!--메이크업 시트-->
     <FrameLayout
